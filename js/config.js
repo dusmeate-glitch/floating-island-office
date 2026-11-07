@@ -30,7 +30,7 @@ export const STAFF = [
     hair: 0x1c1a18,
     desk: { x: 0.15, z: -9.48, ry: Math.PI },
     wait: { x: 1.7, z: -6.15, ry: Math.PI },
-    idle: { x: -1.85, z: 8.15, ry: 0.25 },
+    idle: { x: 0.15, z: -9.48, ry: Math.PI },
     sitIdle: true,
   },
   {

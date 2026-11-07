@@ -88,8 +88,17 @@ function makePerson(spec) {
 export function createStaff(scene) {
   const actors = STAFF.map((spec, index) => {
     const mesh = makePerson(spec);
+    const seatedAtDesk = !!spec.sitIdle && spec.idle.x === spec.desk.x && spec.idle.z === spec.desk.z;
     mesh.position.set(spec.idle.x + index * 0.01, 0, spec.idle.z);
     mesh.rotation.y = spec.idle.ry || 0;
+    if (seatedAtDesk) {
+      const u = mesh.userData;
+      u.hips.position.y = 0.48;
+      u.legL.rotation.x = -1.15;
+      u.legR.rotation.x = -1.15;
+      u.legL.position.y = -0.28;
+      u.legR.position.y = -0.28;
+    }
     scene.add(mesh);
     return {
       spec,
@@ -99,6 +108,7 @@ export function createStaff(scene) {
       target: new THREE.Vector3(spec.idle.x, 0, spec.idle.z),
       facing: spec.idle.ry || 0,
       sit: !!spec.sitIdle,
+      pose: "idle",
       speed: 1.65,
       phase: index * 1.3,
     };

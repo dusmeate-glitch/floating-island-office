@@ -26,7 +26,11 @@ const PAL = {
     outside: 0x9aabb8,
     building: 0x8b97a3,
     pedestalTop: 0xeef3f6,
-    hologram: 0x7ad0ff,
+    stone: 0xd9d1c4,
+    stoneDark: 0xb7aa96,
+    water: 0x5eb6e6,
+    waterDeep: 0x2f86b8,
+    foam: 0xf3fbff,
   },
   night: {
     clear: 0x2a2d33,
@@ -51,7 +55,11 @@ const PAL = {
     outside: 0x1c1f24,
     building: 0x3a4048,
     pedestalTop: 0xd5dde4,
-    hologram: 0x8ce2ff,
+    stone: 0xc9d3dc,
+    stoneDark: 0x9aabb6,
+    water: 0x8ad4ff,
+    waterDeep: 0x3d94d4,
+    foam: 0xe5f5ff,
   },
 };
 
@@ -102,7 +110,20 @@ function woodTexture(kind = "plank") {
 export function buildOffice(scene) {
   const themeables = [];
   const lamps = [];
-  const hologram = { group: null, spin: [] };
+  const fountain = {
+    drops: [],
+    ripples: [],
+    veils: [],
+    jet: null,
+    surfaces: [],
+    dropMesh: null,
+    sheetOpacity: 0.36,
+    veilOpacity: 0.14,
+    sprayGlow: 0.5,
+    rippleAlpha: 0.5,
+  };
+  const _dummy = new THREE.Object3D();
+  const _tmp = new THREE.Vector3();
   const deptLabels = [];
 
   const plankTex = woodTexture("plank");
@@ -145,18 +166,87 @@ export function buildOffice(scene) {
     pedTop: new THREE.MeshStandardMaterial({ color: PAL.day.pedestalTop, roughness: 0.35, metalness: 0.08 }),
     rugA: new THREE.MeshStandardMaterial({ color: 0xd7c7a6, roughness: 0.92 }),
     rugB: new THREE.MeshStandardMaterial({ color: 0x5e6a58, roughness: 0.9 }),
-    hologram: new THREE.MeshPhysicalMaterial({
-      color: 0x9adfff,
-      emissive: 0x3aa8e0,
-      emissiveIntensity: 0.55,
+    stone: new THREE.MeshStandardMaterial({
+      color: PAL.day.stone,
+      roughness: 0.58,
+      metalness: 0.08,
+      side: THREE.DoubleSide,
+    }),
+    stoneDark: new THREE.MeshStandardMaterial({
+      color: PAL.day.stoneDark,
+      roughness: 0.72,
+      metalness: 0.04,
+      side: THREE.DoubleSide,
+    }),
+    stoneRim: new THREE.MeshStandardMaterial({
+      color: PAL.day.stone,
+      emissive: PAL.day.water,
+      emissiveIntensity: 0.12,
+      roughness: 0.38,
+      metalness: 0.22,
+    }),
+    water: new THREE.MeshPhysicalMaterial({
+      color: PAL.day.water,
+      emissive: PAL.day.waterDeep,
+      emissiveIntensity: 0.22,
       transparent: true,
-      opacity: 0.28,
-      roughness: 0.05,
-      metalness: 0.05,
+      opacity: 0.78,
+      roughness: 0.06,
+      metalness: 0.02,
+      transmission: 0.18,
+      thickness: 0.12,
       depthWrite: false,
       side: THREE.DoubleSide,
     }),
-    holoLine: new THREE.LineBasicMaterial({ color: 0xb7ecff, transparent: true, opacity: 0.95 }),
+    waterDeep: new THREE.MeshPhysicalMaterial({
+      color: PAL.day.waterDeep,
+      emissive: PAL.day.waterDeep,
+      emissiveIntensity: 0.12,
+      transparent: true,
+      opacity: 0.9,
+      roughness: 0.18,
+      metalness: 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    sheet: new THREE.MeshPhysicalMaterial({
+      color: PAL.day.water,
+      emissive: PAL.day.waterDeep,
+      emissiveIntensity: 0.2,
+      transparent: true,
+      opacity: 0.36,
+      roughness: 0.04,
+      metalness: 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    veil: new THREE.MeshPhysicalMaterial({
+      color: PAL.day.water,
+      emissive: PAL.day.waterDeep,
+      emissiveIntensity: 0.16,
+      transparent: true,
+      opacity: 0.14,
+      roughness: 0.05,
+      metalness: 0.0,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    spray: new THREE.MeshStandardMaterial({
+      color: PAL.day.foam,
+      emissive: PAL.day.water,
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.88,
+      roughness: 0.16,
+      depthWrite: false,
+    }),
+    foamRing: new THREE.MeshBasicMaterial({
+      color: PAL.day.foam,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
     lampShade: new THREE.MeshStandardMaterial({ color: 0xf4efe4, emissive: 0xffe3b0, emissiveIntensity: 0.15, roughness: 0.55 }),
     lampPole: new THREE.MeshStandardMaterial({ color: 0x6a5340, roughness: 0.4, metalness: 0.35 }),
   };
@@ -168,7 +258,6 @@ export function buildOffice(scene) {
     { mat: mats.woodDark, key: "woodDark" },
     { mat: mats.frame, key: "frame" },
     { mat: mats.pedTop, key: "pedestalTop" },
-    { mat: mats.hologram, key: "hologram", emissive: true },
   );
 
   const group = new THREE.Group();
@@ -617,7 +706,7 @@ export function buildOffice(scene) {
   plant(16.35, 8.55, 0.95);
   plant(8.05, 0.2, 0.85);
 
-  // --- Central hologram pedestal ---
+  // --- Central fountain on the round pedestal ---
   const ped = new THREE.Group();
   const pedBody = new THREE.Mesh(new THREE.CylinderGeometry(2.35, 2.45, 0.58, 48), mats.wood);
   pedBody.position.y = 0.29;
@@ -645,19 +734,215 @@ export function buildOffice(scene) {
   ped.position.set(0, 0, 0);
   group.add(ped);
 
-  const holo = new THREE.Group();
-  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.72, 0), mats.hologram);
-  const cube = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.82, 0.82), mats.hologram);
-  cube.visible = false;
-  const dEdges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(0.72, 0)), mats.holoLine);
-  const cEdges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.82, 0.82, 0.82)), mats.holoLine);
-  cEdges.visible = false;
-  holo.add(diamond, cube, dEdges, cEdges);
-  holo.position.set(0, 1.85, 0);
-  group.add(holo);
-  hologram.group = holo;
-  hologram.spin.push(diamond, cube, dEdges, cEdges);
-  hologram.shapes = { diamond, cube, dEdges, cEdges };
+  const fountainRoot = new THREE.Group();
+  fountainRoot.position.set(0, 0.63, 0);
+  group.add(fountainRoot);
+
+  function makeBasin(outerR, innerR, baseY, wallH, segs, holeR) {
+    const g = new THREE.Group();
+    const floorH = 0.045;
+    const floor = new THREE.Mesh(new THREE.CylinderGeometry(innerR, innerR, floorH, segs), mats.stoneDark);
+    floor.position.y = baseY + floorH / 2;
+    floor.receiveShadow = true;
+    g.add(floor);
+
+    const outer = new THREE.Mesh(
+      new THREE.CylinderGeometry(outerR, outerR * 0.985, wallH, segs, 1, true),
+      mats.stone
+    );
+    outer.position.y = baseY + wallH / 2;
+    outer.castShadow = true;
+    outer.receiveShadow = true;
+    g.add(outer);
+
+    const innerH = Math.max(0.08, wallH - 0.05);
+    const inner = new THREE.Mesh(
+      new THREE.CylinderGeometry(innerR, innerR * 0.992, innerH, segs, 1, true),
+      mats.stoneDark
+    );
+    inner.position.y = baseY + innerH / 2 + 0.02;
+    inner.receiveShadow = true;
+    g.add(inner);
+
+    const lip = new THREE.Mesh(
+      new THREE.TorusGeometry(outerR - 0.012, Math.min(0.042, wallH * 0.2), 8, segs),
+      mats.stoneRim
+    );
+    lip.rotation.x = Math.PI / 2;
+    lip.position.y = baseY + wallH;
+    lip.castShadow = true;
+    g.add(lip);
+
+    const waterY = baseY + wallH * 0.56;
+    const hole = Math.max(holeR, 0);
+    const deepGeo = hole > 0.02
+      ? new THREE.RingGeometry(hole, innerR * 0.98, segs)
+      : new THREE.CircleGeometry(innerR * 0.98, segs);
+    const deep = new THREE.Mesh(deepGeo, mats.waterDeep);
+    deep.rotation.x = -Math.PI / 2;
+    deep.position.y = waterY - 0.04;
+    deep.renderOrder = 1;
+    g.add(deep);
+
+    const surfGeo = hole > 0.02
+      ? new THREE.RingGeometry(hole, innerR * 0.92, segs)
+      : new THREE.CircleGeometry(innerR * 0.92, segs);
+    const water = new THREE.Mesh(surfGeo, mats.water);
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = waterY;
+    water.renderOrder = 2;
+    water.userData.baseY = waterY;
+    water.userData.phase = outerR;
+    g.add(water);
+    fountain.surfaces.push(water);
+
+    const foam = new THREE.Mesh(
+      new THREE.TorusGeometry(innerR * 0.9, 0.014, 6, Math.max(segs, 20)),
+      mats.foamRing
+    );
+    foam.rotation.x = Math.PI / 2;
+    foam.position.y = waterY + 0.01;
+    foam.renderOrder = 3;
+    g.add(foam);
+
+    fountainRoot.add(g);
+    return { lipY: baseY + wallH, waterY, innerR, outerR };
+  }
+
+  function stem(rTop, rBot, y0, y1, segs) {
+    const h = y1 - y0;
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, segs), mats.stone);
+    mesh.position.y = (y0 + y1) / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    fountainRoot.add(mesh);
+    return mesh;
+  }
+
+  function veil(rTop, rBot, y0, y1, segs, spin) {
+    const h = y1 - y0;
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, segs, 1, true), mats.veil);
+    mesh.position.y = (y0 + y1) / 2;
+    mesh.renderOrder = 2;
+    mesh.userData.spin = spin;
+    mesh.userData.pulse = spin * 4;
+    fountainRoot.add(mesh);
+    fountain.veils.push(mesh);
+    return mesh;
+  }
+
+  function jetCurves(count, r0, y0, r1, y1, r2, y2, tubeR, twist = 0) {
+    const curves = [];
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + twist;
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(c * r0, y0, s * r0),
+        new THREE.Vector3(c * r1, y1, s * r1),
+        new THREE.Vector3(c * r2, y2, s * r2)
+      );
+      curves.push(curve);
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, tubeR, 5, false), mats.sheet);
+      tube.renderOrder = 2;
+      fountainRoot.add(tube);
+    }
+    return curves;
+  }
+
+  function addDrops(curves, perCurve, speed, base) {
+    for (let i = 0; i < curves.length; i++) {
+      for (let k = 0; k < perCurve; k++) {
+        fountain.drops.push({
+          curve: curves[i],
+          speed,
+          phase: (k / perCurve) + i * 0.13,
+          base,
+        });
+      }
+    }
+  }
+
+  const lower = makeBasin(1.46, 1.2, 0, 0.4, 36, 0.32);
+  const mid = makeBasin(0.74, 0.54, 0.98, 0.24, 28, 0.16);
+  const top = makeBasin(0.36, 0.24, 1.56, 0.16, 20, 0);
+  stem(0.2, 0.3, lower.waterY - 0.02, mid.lipY - 0.24, 14);
+  stem(0.09, 0.14, mid.waterY - 0.02, top.lipY - 0.16, 10);
+
+  const jetH = 0.4;
+  const jetFoot = top.lipY + 0.02;
+  const jet = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.055, jetH, 7), mats.spray);
+  jet.userData.half = jetH / 2;
+  jet.userData.foot = jetFoot;
+  jet.position.y = jetFoot + jetH / 2;
+  jet.renderOrder = 3;
+  fountainRoot.add(jet);
+  fountain.jet = jet;
+  const spout = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), mats.stoneRim);
+  spout.position.y = jetFoot;
+  fountainRoot.add(spout);
+
+  veil(0.42, 0.68, mid.lipY - 0.02, top.waterY, 16, 0.18);
+  veil(0.86, 1.22, lower.waterY + 0.04, mid.lipY - 0.02, 20, -0.1);
+
+  const lowerJets = jetCurves(8, mid.outerR * 0.92, mid.lipY, 1.2, 0.74, 0.96, lower.waterY + 0.02, 0.042, 0.2);
+  const upperJets = jetCurves(6, top.outerR * 0.9, top.lipY, 0.64, 1.4, mid.innerR * 0.72, mid.waterY + 0.02, 0.03, 0.45);
+  const crownCurves = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    crownCurves.push(new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(c * 0.03, jetFoot + jetH * 0.86, s * 0.03),
+      new THREE.Vector3(c * 0.22, jetFoot + jetH + 0.22, s * 0.22),
+      new THREE.Vector3(c * 0.32, top.waterY + 0.02, s * 0.32)
+    ));
+  }
+  const splash = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + 0.3;
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    splash.push(new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(c * 0.9, lower.waterY + 0.02, s * 0.9),
+      new THREE.Vector3(c * 1.02, lower.waterY + 0.28, s * 1.02),
+      new THREE.Vector3(c * 1.16, lower.waterY + 0.02, s * 1.16)
+    ));
+  }
+  const rising = [new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, top.waterY + 0.04, 0),
+    new THREE.Vector3(0.02, jetFoot + jetH * 0.55, 0),
+    new THREE.Vector3(0, jetFoot + jetH * 0.9, 0)
+  )];
+
+  addDrops(lowerJets, 5, 0.42, 0.072);
+  addDrops(upperJets, 4, 0.5, 0.058);
+  addDrops(crownCurves, 3, 0.72, 0.05);
+  addDrops(splash, 2, 0.85, 0.046);
+  addDrops(rising, 6, 0.95, 0.04);
+
+  const dropGeo = new THREE.SphereGeometry(1, 6, 5);
+  const dropMesh = new THREE.InstancedMesh(dropGeo, mats.spray, fountain.drops.length);
+  dropMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  dropMesh.frustumCulled = false;
+  dropMesh.renderOrder = 4;
+  fountainRoot.add(dropMesh);
+  fountain.dropMesh = dropMesh;
+
+  function addRipples(y, radius, n) {
+    for (let i = 0; i < n; i++) {
+      const mat = mats.foamRing.clone();
+      const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.012, 6, 32), mat);
+      mesh.rotation.x = Math.PI / 2;
+      mesh.position.y = y + 0.015;
+      mesh.renderOrder = 4;
+      mesh.userData.slot = i / n;
+      fountainRoot.add(mesh);
+      fountain.ripples.push(mesh);
+    }
+  }
+  addRipples(lower.waterY, 1.05, 3);
+  addRipples(mid.waterY, 0.42, 2);
 
   plant(-2.15, -1.55, 0.95);
   plant(2.2, -1.5, 1.0);
@@ -710,26 +995,46 @@ export function buildOffice(scene) {
     mats.pedTop.color.setHex(pal.pedestalTop);
     mats.glass.color.setHex(pal.glass);
     mats.glass.opacity = mode === "night" ? 0.22 : 0.32;
-    mats.hologram.color.setHex(pal.hologram);
-    mats.hologram.emissiveIntensity = mode === "night" ? 0.95 : 0.45;
-    mats.lampShade.emissiveIntensity = mode === "night" ? 1.15 : 0.12;
+    const night = mode === "night";
+    mats.stone.color.setHex(pal.stone);
+    mats.stoneDark.color.setHex(pal.stoneDark);
+    mats.stoneRim.color.setHex(pal.stone);
+    mats.stoneRim.emissive.setHex(pal.water);
+    mats.stoneRim.emissiveIntensity = night ? 0.55 : 0.12;
+    mats.water.color.setHex(pal.water);
+    mats.water.emissive.setHex(pal.waterDeep);
+    mats.water.emissiveIntensity = night ? 0.78 : 0.22;
+    mats.waterDeep.color.setHex(pal.waterDeep);
+    mats.waterDeep.emissive.setHex(pal.waterDeep);
+    mats.waterDeep.emissiveIntensity = night ? 0.5 : 0.14;
+    mats.sheet.color.setHex(pal.water);
+    mats.sheet.emissive.setHex(pal.waterDeep);
+    mats.sheet.emissiveIntensity = night ? 0.7 : 0.2;
+    mats.veil.color.setHex(pal.water);
+    mats.veil.emissive.setHex(pal.waterDeep);
+    mats.veil.emissiveIntensity = night ? 0.55 : 0.16;
+    mats.spray.color.setHex(pal.foam);
+    mats.spray.emissive.setHex(pal.water);
+    mats.foamRing.color.setHex(pal.foam);
+    mats.foamRing.opacity = night ? 0.7 : 0.5;
+    fountain.sheetOpacity = night ? 0.42 : 0.34;
+    fountain.veilOpacity = night ? 0.2 : 0.13;
+    fountain.sprayGlow = night ? 1.05 : 0.48;
+    fountain.rippleAlpha = night ? 0.72 : 0.48;
+    for (const ripple of fountain.ripples) ripple.material.color.setHex(pal.foam);
+    mats.lampShade.emissiveIntensity = night ? 1.15 : 0.12;
     mats.screen.emissiveIntensity = mode === "night" ? 0.9 : 0.4;
     for (const item of themeables) {
       if (item.mesh && item.dayColor != null) {
         item.mesh.material.color.setHex(mode === "night" ? item.nightColor : item.dayColor);
       }
     }
-    const lampIntensity = mode === "night" ? 32 : 0;
+    const lampIntensity = night ? 32 : 0;
     for (const lamp of lamps) {
       lamp.light.intensity = lampIntensity;
-      if (lamp.shade?.material) lamp.shade.material.emissiveIntensity = mode === "night" ? 1.35 : 0.18;
-      if (lamp.bulb?.material) lamp.bulb.material.emissiveIntensity = mode === "night" ? 1.6 : 0.25;
+      if (lamp.shade?.material) lamp.shade.material.emissiveIntensity = night ? 1.35 : 0.18;
+      if (lamp.bulb?.material) lamp.bulb.material.emissiveIntensity = night ? 1.6 : 0.25;
     }
-    const night = mode === "night";
-    hologram.shapes.diamond.visible = !night;
-    hologram.shapes.dEdges.visible = !night;
-    hologram.shapes.cube.visible = night;
-    hologram.shapes.cEdges.visible = night;
     return pal;
   }
 
@@ -741,13 +1046,49 @@ export function buildOffice(scene) {
   }
 
   function tick(t) {
-    hologram.group.rotation.y = t * 0.55;
-    hologram.group.rotation.x = Math.sin(t * 0.7) * 0.12;
-    hologram.group.position.y = 1.85 + Math.sin(t * 1.3) * 0.1;
-    if (hologram.shapes.cube.visible) {
-      hologram.shapes.cube.rotation.y = t * 0.35;
-      hologram.shapes.cEdges.rotation.y = t * 0.35;
+    const drops = fountain.drops;
+    const mesh = fountain.dropMesh;
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      let u = (t * d.speed + d.phase) % 1;
+      if (u < 0) u += 1;
+      d.curve.getPoint(u, _tmp);
+      const bulge = Math.sin(u * Math.PI);
+      const fadeIn = u < 0.08 ? u / 0.08 : 1;
+      const fadeOut = u > 0.8 ? 1 - (u - 0.8) / 0.2 : 1;
+      const s = Math.max(0.001, d.base * (0.55 + 0.55 * bulge) * fadeIn * fadeOut);
+      _dummy.position.copy(_tmp);
+      _dummy.scale.setScalar(s);
+      _dummy.rotation.set(0, 0, 0);
+      _dummy.updateMatrix();
+      mesh.setMatrixAt(i, _dummy.matrix);
     }
+    mesh.instanceMatrix.needsUpdate = true;
+
+    for (let i = 0; i < fountain.ripples.length; i++) {
+      const ripple = fountain.ripples[i];
+      const u = (t * 0.32 + ripple.userData.slot) % 1;
+      const s = 0.28 + u * 0.92;
+      ripple.scale.set(s, s, s);
+      ripple.material.opacity = (1 - u) * (1 - u) * fountain.rippleAlpha;
+    }
+
+    const sy = 0.8 + (Math.sin(t * 2.7) * 0.5 + 0.5) * 0.38;
+    const jet = fountain.jet;
+    jet.scale.y = sy;
+    jet.position.y = jet.userData.foot + jet.userData.half * sy;
+
+    for (const veilMesh of fountain.veils) {
+      veilMesh.rotation.y = t * veilMesh.userData.spin;
+      const breathe = 1 + Math.sin(t * 1.6 + veilMesh.userData.pulse) * 0.03;
+      veilMesh.scale.set(breathe, 1 + Math.sin(t * 2.2 + veilMesh.userData.pulse) * 0.04, breathe);
+    }
+    for (const surface of fountain.surfaces) {
+      surface.position.y = surface.userData.baseY + Math.sin(t * 1.8 + surface.userData.phase) * 0.008;
+    }
+    mats.sheet.opacity = fountain.sheetOpacity * (0.82 + 0.18 * Math.sin(t * 2.2));
+    mats.veil.opacity = fountain.veilOpacity * (0.75 + 0.25 * Math.sin(t * 1.5));
+    mats.spray.emissiveIntensity = fountain.sprayGlow * (0.86 + 0.14 * Math.sin(t * 3.1));
   }
 
   return { group, mats, lamps, applyTheme, updateDeptCounts, tick, floorTex: { plankTex, tileTex } };
