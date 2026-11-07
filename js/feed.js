@@ -1,4 +1,4 @@
-import { NTFY_HOST, STALE_MS } from "./config.js?v=campus2";
+import { NTFY_HOST, STALE_MS } from "./config.js?v=plan1to1";
 
 function parsePayload(raw) {
   if (raw == null) return null;

@@ -273,6 +273,37 @@ html, body {
   margin-left: 6px;
 }
 
+.dept-tag.is-empty {
+  display: none;
+}
+
+.plan-title {
+  transform: translate(-50%, -50%);
+  color: #2a241c;
+  font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", "PMingLiU", serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.plan-title .n {
+  color: #a15c32;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+
+body[data-mode="night"] .plan-title {
+  color: #f6efe4;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+body[data-mode="night"] .plan-title .n {
+  color: #f0c14b;
+}
+
 #loader {
   position: fixed;
   inset: 0;
