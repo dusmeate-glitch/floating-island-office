@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
 import { CSS2DRenderer } from "./vendor/CSS2DRenderer.js";
-import { createFeed } from "./feed.js?v=fountain1";
-import { mountHud } from "./hud.js?v=fountain1";
-import { buildOffice } from "./office.js?v=fountain1";
-import { createStaff } from "./avatars.js?v=fountain1";
-import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=fountain1";
+import { createFeed } from "./feed.js?v=campus2";
+import { mountHud } from "./hud.js?v=campus2";
+import { buildOffice } from "./office.js?v=campus2";
+import { createStaff } from "./avatars.js?v=campus2";
+import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=campus2";
 
 const host = document.getElementById("canvas-host");
 const overlay = document.getElementById("ui");
@@ -72,7 +72,7 @@ sun.shadow.bias = -0.0008;
 scene.add(sun);
 
 const office = buildOffice(scene);
-const staff = createStaff(scene);
+const staff = createStaff(scene, office);
 const hud = mountHud(overlay);
 
 let modeChoice = modeFromQuery();
@@ -184,7 +184,25 @@ window.__OFFICE__ = {
       pose: a.pose,
       x: +a.mesh.position.x.toFixed(2),
       z: +a.mesh.position.z.toFixed(2),
+      room: office.roomOf(a.mesh.position.x, a.mesh.position.z),
+      door: a.doorId,
     }));
+  },
+  roomOf(x, z) {
+    return office.roomOf(x, z);
+  },
+  doors() {
+    return office.doors.map((d) => ({
+      id: d.id,
+      x: +d.x.toFixed(2),
+      z: +d.z.toFixed(2),
+      open: +d.open.toFixed(2),
+      rooms: d.rooms,
+      primary: d.primary,
+    }));
+  },
+  applyVisuals(visuals, snap = false) {
+    staff.applyVisuals(visuals, snap);
   },
   setMode(mode) {
     modeChoice = mode;

@@ -28,9 +28,9 @@ export const STAFF = [
     accent: 0xd4b36a,
     skin: 0xf0d0b4,
     hair: 0x1c1a18,
-    desk: { x: 0.15, z: -9.48, ry: Math.PI },
-    wait: { x: 1.7, z: -6.15, ry: Math.PI },
-    idle: { x: 0.15, z: -9.48, ry: Math.PI },
+    desk: { x: 0.08, z: -12.18, ry: 0 },
+    wait: { x: 1.7, z: -5.65, ry: Math.PI },
+    idle: { x: 0.08, z: -12.18, ry: 0 },
     sitIdle: true,
   },
   {
@@ -93,7 +93,7 @@ export const STAFF = [
 
 export const DEPT_TAGS = [
   { id: "研究部", label: "研究部", x: -12.2, y: 2.55, z: -8.4 },
-  { id: "总控", label: "总控", x: 0, y: 2.7, z: -11.6 },
+  { id: "总控", label: "总裁办公室", x: 0, y: 2.95, z: -11.35 },
   { id: "内容部", label: "内容部", x: 12.2, y: 2.55, z: -8.4 },
   { id: "行政部", label: "行政部", x: -12.2, y: 2.55, z: 3.6 },
   { id: "运营部", label: "运营部", x: 12.2, y: 2.55, z: 4.6 },

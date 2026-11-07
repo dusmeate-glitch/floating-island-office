@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from "./vendor/CSS2DRenderer.js";
-import { STAFF } from "./config.js?v=fountain1";
+import { STAFF } from "./config.js?v=campus2";
 
 function makePerson(spec) {
   const root = new THREE.Group();
@@ -85,7 +85,7 @@ function makePerson(spec) {
   return root;
 }
 
-export function createStaff(scene) {
+export function createStaff(scene, office) {
   const actors = STAFF.map((spec, index) => {
     const mesh = makePerson(spec);
     const seatedAtDesk = !!spec.sitIdle && spec.idle.x === spec.desk.x && spec.idle.z === spec.desk.z;
@@ -106,6 +106,8 @@ export function createStaff(scene) {
       state: "idle",
       step: "",
       target: new THREE.Vector3(spec.idle.x, 0, spec.idle.z),
+      waypoints: [{ x: spec.idle.x, z: spec.idle.z }],
+      doorId: null,
       facing: spec.idle.ry || 0,
       sit: !!spec.sitIdle,
       pose: "idle",
@@ -137,14 +139,20 @@ export function createStaff(scene) {
       actor.step = visual?.step || "";
       actor.error = next === "error";
       const dest = destinationFor(actor, visual);
-      actor.target.set(dest.x, 0, dest.z);
       actor.facing = dest.ry || 0;
       actor.sit = dest.sit;
       actor.pose = dest.pose;
-      if (snap) {
+      if (snap || !office?.route) {
+        actor.waypoints = [{ x: dest.x, z: dest.z }];
         actor.mesh.position.set(dest.x, 0, dest.z);
         actor.mesh.rotation.y = dest.ry || 0;
+      } else {
+        const here = actor.mesh.position;
+        actor.waypoints = office.route(here.x, here.z, dest.x, dest.z);
       }
+      const first = actor.waypoints[0];
+      actor.target.set(first.x, 0, first.z);
+      actor.doorId = first.doorId || null;
       const plate = actor.mesh.userData.plate;
       plate.classList.toggle("active", next === "working" || next === "waiting_user");
       plate.classList.toggle("error", next === "error");
@@ -152,8 +160,25 @@ export function createStaff(scene) {
     }
   }
 
+  function syncWaypoint(actor) {
+    const pos = actor.mesh.position;
+    let guard = 0;
+    while (
+      actor.waypoints.length > 1 &&
+      Math.hypot(actor.waypoints[0].x - pos.x, actor.waypoints[0].z - pos.z) < 0.16 &&
+      guard++ < 4
+    ) {
+      actor.waypoints.shift();
+    }
+    const next = actor.waypoints[0];
+    if (!next) return;
+    actor.target.set(next.x, 0, next.z);
+    actor.doorId = next.doorId || null;
+  }
+
   function tick(dt, t) {
     for (const actor of actors) {
+      syncWaypoint(actor);
       const mesh = actor.mesh;
       const u = mesh.userData;
       const pos = mesh.position;
@@ -203,6 +228,20 @@ export function createStaff(scene) {
           u.armR.rotation.x += (0.08 - u.armR.rotation.x) * 0.1;
           u.hips.position.y += Math.sin(t * 1.4 + actor.phase) * 0.0008;
         }
+      }
+    }
+
+    if (office?.doors) {
+      for (const door of office.doors) {
+        let want = 0;
+        for (const actor of actors) {
+          const dist = Math.hypot(actor.mesh.position.x - door.x, actor.mesh.position.z - door.z);
+          const aiming = actor.doorId === door.id && dist < 3.25;
+          if (dist < 1.65 || aiming) want = 1;
+        }
+        const goal = want ? 1 : 0;
+        door.open += (goal - door.open) * Math.min(1, dt * 6.5);
+        door.pivot.rotation.y = door.baseRy + door.open * door.swing;
       }
     }
   }
