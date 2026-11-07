@@ -1,4 +1,4 @@
-import { LINKS, formatShanghai, STAFF } from "./config.js";
+import { LINKS, formatShanghai, STAFF } from "./config.js?v=fountain1";
 
 export function mountHud(root) {
   root.innerHTML = `

@@ -1,4 +1,4 @@
-import { NTFY_HOST, STALE_MS } from "./config.js";
+import { NTFY_HOST, STALE_MS } from "./config.js?v=fountain1";
 
 function parsePayload(raw) {
   if (raw == null) return null;

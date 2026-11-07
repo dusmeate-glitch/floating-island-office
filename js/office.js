@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from "./vendor/CSS2DRenderer.js";
-import { DEPT_TAGS } from "./config.js";
+import { DEPT_TAGS } from "./config.js?v=fountain1";
 
 const PAL = {
   day: {
