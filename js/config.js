@@ -28,9 +28,9 @@ export const STAFF = [
     accent: 0xd4b36a,
     skin: 0xf0d0b4,
     hair: 0x1c1a18,
-    desk: { x: 0.05, z: -9.95, ry: 0 },
-    wait: { x: -1.25, z: 5.55, ry: Math.PI },
-    idle: { x: 0.05, z: -9.95, ry: 0 },
+    desk: { x: 0.15, z: -9.48, ry: Math.PI },
+    wait: { x: 1.7, z: -6.15, ry: Math.PI },
+    idle: { x: -1.85, z: 8.15, ry: 0.25 },
     sitIdle: true,
   },
   {
@@ -42,9 +42,9 @@ export const STAFF = [
     accent: 0xcde4c8,
     skin: 0xe8c4a0,
     hair: 0x2b2118,
-    desk: { x: -10.75, z: -8.85, ry: Math.PI },
-    wait: { x: 0.2, z: 5.4, ry: Math.PI },
-    idle: { x: 13.5, z: -1.55, ry: -Math.PI / 2 },
+    desk: { x: -11.48, z: -9.15, ry: -Math.PI / 2 },
+    wait: { x: 0.4, z: -6.2, ry: Math.PI },
+    idle: { x: -3.55, z: 9.55, ry: 0.6 },
     sitIdle: true,
   },
   {
@@ -56,9 +56,9 @@ export const STAFF = [
     accent: 0xf0d2b0,
     skin: 0xf3d2b6,
     hair: 0x3a2418,
-    desk: { x: 11.45, z: -8.55, ry: Math.PI },
-    wait: { x: 1.5, z: 5.6, ry: Math.PI },
-    idle: { x: 11.85, z: 0.15, ry: 2.5 },
+    desk: { x: 13.02, z: -9.2, ry: -Math.PI / 2 },
+    wait: { x: 2.85, z: -6.55, ry: Math.PI },
+    idle: { x: 2.05, z: 8.2, ry: -0.35 },
     sitIdle: true,
   },
   {
@@ -70,9 +70,9 @@ export const STAFF = [
     accent: 0xd7e4f0,
     skin: 0xefc9a6,
     hair: 0x1a1a1a,
-    desk: { x: -12.25, z: 2.9, ry: Math.PI },
-    wait: { x: -0.5, z: 5.15, ry: Math.PI },
-    idle: { x: -12.6, z: 6.25, ry: Math.PI / 2 },
+    desk: { x: -11.52, z: 2.35, ry: -Math.PI / 2 },
+    wait: { x: -0.7, z: -6.35, ry: Math.PI },
+    idle: { x: -3.1, z: 1.8, ry: 0.2 },
     sitIdle: false,
   },
   {
@@ -84,18 +84,19 @@ export const STAFF = [
     accent: 0xedd4e2,
     skin: 0xe7be9a,
     hair: 0x241816,
-    desk: { x: 12.4, z: 4.85, ry: Math.PI },
-    wait: { x: 2.15, z: 5.35, ry: Math.PI },
-    idle: { x: 12.2, z: -4.2, ry: Math.PI },
+    desk: { x: 13.22, z: 5.15, ry: -Math.PI / 2 },
+    wait: { x: 3.6, z: -5.7, ry: Math.PI },
+    idle: { x: 3.45, z: 9.7, ry: -0.7 },
     sitIdle: true,
   },
 ];
 
 export const DEPT_TAGS = [
-  { id: "研究部", label: "研究部", x: -11.4, y: 2.45, z: -9.3 },
-  { id: "内容部", label: "内容部", x: 10.6, y: 2.45, z: -9.0 },
-  { id: "行政部", label: "行政部", x: -11.6, y: 2.45, z: 3.6 },
-  { id: "运营部", label: "运营部", x: 11.2, y: 2.45, z: 4.4 },
+  { id: "研究部", label: "研究部", x: -12.2, y: 2.55, z: -8.4 },
+  { id: "总控", label: "总控", x: 0, y: 2.7, z: -11.6 },
+  { id: "内容部", label: "内容部", x: 12.2, y: 2.55, z: -8.4 },
+  { id: "行政部", label: "行政部", x: -12.2, y: 2.55, z: 3.6 },
+  { id: "运营部", label: "运营部", x: 12.2, y: 2.55, z: 4.6 },
 ];
 
 export function topicFromLocation() {

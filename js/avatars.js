@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from "./vendor/CSS2DRenderer.js";
-import { STAFF } from "./config.js?v=plan1to1";
+import { STAFF } from "./config.js?v=original1";
 
 function makePerson(spec) {
   const root = new THREE.Group();
@@ -85,20 +85,11 @@ function makePerson(spec) {
   return root;
 }
 
-export function createStaff(scene, office) {
+export function createStaff(scene) {
   const actors = STAFF.map((spec, index) => {
     const mesh = makePerson(spec);
-    const seatedAtDesk = !!spec.sitIdle && spec.idle.x === spec.desk.x && spec.idle.z === spec.desk.z;
     mesh.position.set(spec.idle.x + index * 0.01, 0, spec.idle.z);
     mesh.rotation.y = spec.idle.ry || 0;
-    if (seatedAtDesk) {
-      const u = mesh.userData;
-      u.hips.position.y = 0.48;
-      u.legL.rotation.x = -1.15;
-      u.legR.rotation.x = -1.15;
-      u.legL.position.y = -0.28;
-      u.legR.position.y = -0.28;
-    }
     scene.add(mesh);
     return {
       spec,
@@ -106,10 +97,8 @@ export function createStaff(scene, office) {
       state: "idle",
       step: "",
       target: new THREE.Vector3(spec.idle.x, 0, spec.idle.z),
-      waypoints: [{ x: spec.idle.x, z: spec.idle.z }],
       facing: spec.idle.ry || 0,
       sit: !!spec.sitIdle,
-      pose: "idle",
       speed: 1.65,
       phase: index * 1.3,
     };
@@ -138,19 +127,14 @@ export function createStaff(scene, office) {
       actor.step = visual?.step || "";
       actor.error = next === "error";
       const dest = destinationFor(actor, visual);
+      actor.target.set(dest.x, 0, dest.z);
       actor.facing = dest.ry || 0;
       actor.sit = dest.sit;
       actor.pose = dest.pose;
-      if (snap || !office?.route) {
-        actor.waypoints = [{ x: dest.x, z: dest.z }];
+      if (snap) {
         actor.mesh.position.set(dest.x, 0, dest.z);
         actor.mesh.rotation.y = dest.ry || 0;
-      } else {
-        const here = actor.mesh.position;
-        actor.waypoints = office.route(here.x, here.z, dest.x, dest.z);
       }
-      const first = actor.waypoints[0];
-      actor.target.set(first.x, 0, first.z);
       const plate = actor.mesh.userData.plate;
       plate.classList.toggle("active", next === "working" || next === "waiting_user");
       plate.classList.toggle("error", next === "error");
@@ -158,24 +142,8 @@ export function createStaff(scene, office) {
     }
   }
 
-  function syncWaypoint(actor) {
-    const pos = actor.mesh.position;
-    let guard = 0;
-    while (
-      actor.waypoints.length > 1 &&
-      Math.hypot(actor.waypoints[0].x - pos.x, actor.waypoints[0].z - pos.z) < 0.16 &&
-      guard++ < 4
-    ) {
-      actor.waypoints.shift();
-    }
-    const next = actor.waypoints[0];
-    if (!next) return;
-    actor.target.set(next.x, 0, next.z);
-  }
-
   function tick(dt, t) {
     for (const actor of actors) {
-      syncWaypoint(actor);
       const mesh = actor.mesh;
       const u = mesh.userData;
       const pos = mesh.position;

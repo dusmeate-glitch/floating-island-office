@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
 import { CSS2DRenderer } from "./vendor/CSS2DRenderer.js";
-import { createFeed } from "./feed.js?v=plan1to1";
-import { mountHud } from "./hud.js?v=plan1to1";
-import { buildOffice } from "./office.js?v=plan1to1";
-import { createStaff } from "./avatars.js?v=plan1to1";
-import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=plan1to1";
+import { createFeed } from "./feed.js?v=original1";
+import { mountHud } from "./hud.js?v=original1";
+import { buildOffice } from "./office.js?v=original1";
+import { createStaff } from "./avatars.js?v=original1";
+import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=original1";
 
 const host = document.getElementById("canvas-host");
 const overlay = document.getElementById("ui");
@@ -27,10 +27,10 @@ labelRenderer.domElement.className = "label-layer";
 document.body.appendChild(labelRenderer.domElement);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xf4f0e6, 70, 140);
+scene.fog = new THREE.Fog(0xb9c5d0, 38, 72);
 
 const aspect = window.innerWidth / window.innerHeight;
-const frustum = 23;
+const frustum = 22;
 const camera = new THREE.OrthographicCamera(
   (-frustum * aspect) / 2,
   (frustum * aspect) / 2,
@@ -39,19 +39,19 @@ const camera = new THREE.OrthographicCamera(
   0.1,
   200
 );
-camera.position.set(7.5, 19.5, 22);
-camera.lookAt(0, 0.4, -1.4);
+camera.position.set(26, 24, 26);
+camera.lookAt(0, 0.4, 0.4);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.4, -1.4);
+controls.target.set(0, 0.35, 0.2);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.minPolarAngle = 0.48;
-controls.maxPolarAngle = 1.12;
-controls.minZoom = 0.62;
-controls.maxZoom = 2.8;
-controls.maxAzimuthAngle = 0.9;
-controls.minAzimuthAngle = -0.9;
+controls.minPolarAngle = 0.55;
+controls.maxPolarAngle = 1.15;
+controls.minZoom = 0.55;
+controls.maxZoom = 2.4;
+controls.maxAzimuthAngle = Math.PI * 0.85;
+controls.minAzimuthAngle = -Math.PI * 0.15;
 controls.update();
 
 const ambient = new THREE.AmbientLight(0xffffff, 0.35);
@@ -64,15 +64,15 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.near = 2;
 sun.shadow.camera.far = 70;
-sun.shadow.camera.left = -22;
-sun.shadow.camera.right = 22;
-sun.shadow.camera.top = 20;
-sun.shadow.camera.bottom = -20;
+sun.shadow.camera.left = -28;
+sun.shadow.camera.right = 28;
+sun.shadow.camera.top = 24;
+sun.shadow.camera.bottom = -24;
 sun.shadow.bias = -0.0008;
 scene.add(sun);
 
 const office = buildOffice(scene);
-const staff = createStaff(scene, office);
+const staff = createStaff(scene);
 const hud = mountHud(overlay);
 
 let modeChoice = modeFromQuery();
@@ -94,7 +94,6 @@ let feedState = {
 
 function applyMode(mode) {
   resolvedMode = mode;
-  document.body.dataset.mode = mode;
   const pal = office.applyTheme(mode);
   renderer.setClearColor(pal.clear, 1);
   scene.background = new THREE.Color(pal.clear);
@@ -185,25 +184,7 @@ window.__OFFICE__ = {
       pose: a.pose,
       x: +a.mesh.position.x.toFixed(2),
       z: +a.mesh.position.z.toFixed(2),
-      room: office.roomOf(a.mesh.position.x, a.mesh.position.z),
-      door: null,
     }));
-  },
-  roomOf(x, z) {
-    return office.roomOf(x, z);
-  },
-  doors() {
-    return office.doors.map((d) => ({
-      id: d.id,
-      x: +d.x.toFixed(2),
-      z: +d.z.toFixed(2),
-      open: +d.open.toFixed(2),
-      rooms: d.rooms,
-      primary: d.primary,
-    }));
-  },
-  applyVisuals(visuals, snap = false) {
-    staff.applyVisuals(visuals, snap);
   },
   setMode(mode) {
     modeChoice = mode;
