@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from "./vendor/CSS2DRenderer.js";
-import { STAFF } from "./config.js?v=original1";
+import { STAFF } from "./config.js?v=logic1";
 
 function makePerson(spec) {
   const root = new THREE.Group();

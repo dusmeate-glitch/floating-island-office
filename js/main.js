@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
 import { CSS2DRenderer } from "./vendor/CSS2DRenderer.js";
-import { createFeed } from "./feed.js?v=original1";
-import { mountHud } from "./hud.js?v=original1";
-import { buildOffice } from "./office.js?v=original1";
-import { createStaff } from "./avatars.js?v=original1";
-import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=original1";
+import { createFeed } from "./feed.js?v=logic1";
+import { mountHud } from "./hud.js?v=logic1";
+import { buildOffice } from "./office.js?v=logic1";
+import { createStaff } from "./avatars.js?v=logic1";
+import { detectAutoMode, modeFromQuery, topicFromLocation } from "./config.js?v=logic1";
 
 const host = document.getElementById("canvas-host");
 const overlay = document.getElementById("ui");

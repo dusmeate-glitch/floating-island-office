@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from "./vendor/CSS2DRenderer.js";
-import { DEPT_TAGS } from "./config.js?v=original1";
+import { DEPT_TAGS } from "./config.js?v=logic1";
 
 const PAL = {
   day: {
@@ -252,6 +252,50 @@ export function buildOffice(scene) {
     }
   }
 
+  function doorway(x, z, ry, width = 1.4, swing = 1.15, wallH = 2.55) {
+    const doorH = 2.16;
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = ry;
+    const jambGeo = new THREE.BoxGeometry(0.09, wallH, 0.08);
+    for (const side of [-1, 1]) {
+      const jamb = new THREE.Mesh(jambGeo, mats.frame);
+      jamb.position.set(0, wallH / 2, side * (width / 2));
+      g.add(jamb);
+    }
+    const header = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.08, width + 0.08), mats.frame);
+    header.position.set(0, doorH + 0.02, 0);
+    g.add(header);
+    const leafW = Math.max(0.72, width - 0.14);
+    const leaf = new THREE.Group();
+    leaf.position.set(0, 0, -width / 2);
+    leaf.rotation.y = swing;
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(0.045, doorH - 0.08, leafW), mats.wood);
+    panel.position.set(0.04, doorH / 2, leafW / 2);
+    panel.castShadow = true;
+    const lite = new THREE.Mesh(
+      new THREE.BoxGeometry(0.02, (doorH - 0.08) * 0.42, leafW * 0.62),
+      mats.glass
+    );
+    lite.position.set(0.065, doorH * 0.62, leafW / 2);
+    lite.renderOrder = 2;
+    const pull = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.32, 0.04), mats.frame);
+    pull.position.set(0.07, 1.02, leafW - 0.1);
+    leaf.add(panel, lite, pull);
+    g.add(leaf);
+    if (wallH - doorH > 0.18) {
+      const transom = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, wallH - doorH - 0.1, Math.max(0.4, width - 0.1)),
+        mats.glass
+      );
+      transom.position.set(0, (wallH + doorH) / 2, 0);
+      transom.renderOrder = 2;
+      g.add(transom);
+    }
+    group.add(g);
+    return g;
+  }
+
   function solidWall(x1, z1, x2, z2, height = 2.55) {
     const dx = x2 - x1;
     const dz = z2 - z1;
@@ -339,8 +383,8 @@ export function buildOffice(scene) {
       const screen = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.38, 0.04), mats.dark);
       screen.position.set(0, 1.08, -0.22);
       g.add(screen);
-      const glow = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.32, 0.02), mats.screen);
-      glow.position.set(0, 1.08, -0.198);
+      const glow = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.32, 0.015), mats.screen);
+      glow.position.set(0, 1.08, -0.185);
       g.add(glow);
       const neck = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, 0.06), mats.metal);
       neck.position.set(0, 0.86, -0.22);
@@ -491,7 +535,8 @@ export function buildOffice(scene) {
 
   // Outer glass envelope (open dollhouse interior, city visible)
   glassWall(-18, -15, 18, -15, 2.7);
-  glassWall(-18, 15, 18, 15, 2.7);
+  glassWall(-18, 15, 18, 15, 2.7, 18, 1.7);
+  doorway(0, 15, Math.PI / 2, 1.55, 1.2, 2.7);
   glassWall(-18, -15, -18, 15, 2.7);
   glassWall(18, -15, 18, 15, 2.7);
 
@@ -502,14 +547,16 @@ export function buildOffice(scene) {
   glassWall(-7.1, -14.2, -7.1, -3.6, 2.55, 6.4);
   rug(-12.2, -8.8, 8.6, 8.8, mats.rugA);
   desk(-14.3, -11.4, 0);
-  chair(-14.3, -10.55, 0);
+  chair(-14.3, -10.55, Math.PI);
   desk(-10.2, -11.4, 0);
-  chair(-10.2, -10.55, 0);
+  chair(-10.2, -10.55, Math.PI);
   desk(-12.35, -9.15, Math.PI / 2);
-  chair(-11.5, -9.15, Math.PI / 2);
+  chair(-11.5, -9.15, -Math.PI / 2);
+  doorway(-7.1, -7.8, 0, 1.35, -1.15);
   bookshelf(-16.5, -12.8, Math.PI / 2, 1.5, 2.05);
   plant(-8.0, -13.4, 1.05);
   plant(-16.4, -4.5, 0.9);
+  doorway(-12.0, -3.6, Math.PI / 2, 1.35, 1.15);
 
   // server closet between research and conference
   solidWall(-17.2, -3.55, -14.3, -3.55, 2.55);
@@ -540,9 +587,11 @@ export function buildOffice(scene) {
   }
   monitorWall(-16.7, 3.7, Math.PI / 2);
   desk(-12.4, 2.35, Math.PI / 2);
-  chair(-11.55, 2.35, Math.PI / 2);
+  chair(-11.55, 2.35, -Math.PI / 2);
+  doorway(-7.15, 3.85, 0, 1.35, -1.15);
   plant(-8.0, 7.8, 0.95);
   plant(-16.4, 7.7, 0.8);
+  doorway(-10.8, -0.55, Math.PI / 2, 1.35, -1.15);
 
   // --- 总控 round lounge (top center) ---
   const ceo = new THREE.Group();
@@ -559,13 +608,15 @@ export function buildOffice(scene) {
     const z1 = -10.35 + Math.cos(a0) * r;
     const x2 = Math.sin(a1) * r;
     const z2 = -10.35 + Math.cos(a1) * r;
+    if (i === 12 || i === 13) continue;
     glassWall(x1, z1, x2, z2, 2.58);
   }
+  doorway(0, -5.29, Math.PI / 2, 1.55, -1.2, 2.58);
   box(mats.wood, 2.3, 0.08, 0.78, 0.1, 0.76, -13.15);
   box(mats.woodDark, 2.3, 0.55, 0.7, 0.1, 0.28, -13.15);
-  chair(0.15, -12.25, Math.PI);
+  chair(0.15, -12.25, 0);
   desk(0.15, -10.35, 0);
-  chair(0.15, -9.5, 0);
+  chair(0.15, -9.5, Math.PI);
   loungeChair(-1.7, -10.1, 0.5);
   loungeChair(1.85, -10.15, -0.5);
   tableRound(0.05, -11.15, 0.48, 0.38);
@@ -584,17 +635,19 @@ export function buildOffice(scene) {
   glassWall(7.15, -14.2, 7.15, -3.55, 2.55, 6.5);
   rug(12.2, -8.85, 8.6, 8.8, mats.rugA);
   desk(10.15, -11.5, 0);
-  chair(10.15, -10.65, 0);
+  chair(10.15, -10.65, Math.PI);
   desk(14.3, -11.5, 0);
-  chair(14.3, -10.65, 0);
+  chair(14.3, -10.65, Math.PI);
   desk(12.15, -9.2, -Math.PI / 2);
   chair(13.0, -9.2, -Math.PI / 2);
+  doorway(7.15, -7.7, 0, 1.35, 1.15);
   cardboard(15.9, -5.0, 0.6, 0.42, 0.5);
   cardboard(16.15, -5.55, 0.48, 0.55, 0.4);
   cardboard(15.45, -5.6, 0.42, 0.32, 0.38);
   cardboard(16.3, -4.4, 0.5, 0.36, 0.46);
   plant(8.05, -13.4, 1.0);
   plant(16.4, -13.5, 0.85);
+  doorway(11.55, -3.55, Math.PI / 2, 1.35, -1.15);
 
   // --- 运营部 (right-bottom) ---
   glassWall(7.15, -0.4, 17.2, -0.4, 2.55, 4.0);
@@ -608,7 +661,8 @@ export function buildOffice(scene) {
   desk(12.35, 5.15, -Math.PI / 2);
   chair(13.2, 5.15, -Math.PI / 2);
   desk(15.4, 7.5, Math.PI);
-  chair(15.4, 6.7, Math.PI);
+  chair(15.4, 6.7, 0);
+  doorway(7.15, 4.8, 0, 1.35, 1.15);
   filing(9.0, 8.15);
   filing(9.85, 8.15);
   filing(10.7, 8.15);
@@ -616,6 +670,7 @@ export function buildOffice(scene) {
   filing(9.85, 7.45);
   plant(16.35, 8.55, 0.95);
   plant(8.05, 0.2, 0.85);
+  doorway(11.15, -0.4, Math.PI / 2, 1.35, 1.15);
 
   // --- Central hologram pedestal ---
   const ped = new THREE.Group();

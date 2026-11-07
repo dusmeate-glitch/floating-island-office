@@ -1,4 +1,4 @@
-import { NTFY_HOST, STALE_MS } from "./config.js?v=original1";
+import { NTFY_HOST, STALE_MS } from "./config.js?v=logic1";
 
 function parsePayload(raw) {
   if (raw == null) return null;
